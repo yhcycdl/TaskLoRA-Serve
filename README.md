@@ -41,10 +41,16 @@ Use Python 3.10 or 3.11 for training and vLLM serving.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 pip install -r requirements.txt
 ```
 
-For GPU training, install a PyTorch build that matches your CUDA version before installing the rest of the requirements.
+For GPU training, install a PyTorch build that matches your NVIDIA driver before installing the rest of the requirements. Install vLLM later, after training smoke tests pass:
+
+```bash
+pip install -r requirements-vllm.txt
+```
 
 ## 1. Build Datasets
 
@@ -56,6 +62,17 @@ Fast smoke run:
 
 ```bash
 python -m training.build_dataset --task all --code-limit 100 --math-limit 100 --output-dir data/processed_smoke
+```
+
+Offline smoke run using bundled tiny samples:
+
+```bash
+python -m training.build_dataset \
+  --task all \
+  --code-local-file data/examples/codealpaca_sample.jsonl \
+  --math-local-train-file data/examples/gsm8k_train_sample.jsonl \
+  --math-local-test-file data/examples/gsm8k_test_sample.jsonl \
+  --output-dir data/processed_smoke
 ```
 
 Outputs:

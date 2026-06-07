@@ -61,6 +61,17 @@ TaskLoRA-Serve V1 是一个小而完整的 AI Infra 项目：
 2. 把 CodeAlpaca 和 GSM8K 转成统一的 `messages` 格式。
 3. 输出 `jsonl` 文件到 `data/processed/`。
 
+如果服务器不能访问 Hugging Face，它也支持本地 JSON/JSONL：
+
+```bash
+python -m training.build_dataset \
+  --task all \
+  --code-local-file data/examples/codealpaca_sample.jsonl \
+  --math-local-train-file data/examples/gsm8k_train_sample.jsonl \
+  --math-local-test-file data/examples/gsm8k_test_sample.jsonl \
+  --output-dir data/processed_smoke
+```
+
 Code 样本结构大概是：
 
 ```json

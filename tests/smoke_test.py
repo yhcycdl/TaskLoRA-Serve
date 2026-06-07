@@ -43,6 +43,11 @@ def test_dataset_normalizers() -> None:
     assert len(valid) == 5
     assert len(test) == 5
 
+    small_train, small_valid, small_test = split_records([{"i": i} for i in range(10)], seed=42)
+    assert len(small_train) == 8
+    assert len(small_valid) == 1
+    assert len(small_test) == 1
+
 
 def test_eval_helpers() -> None:
     assert extract_gsm8k_answer("Reasoning...\n#### 1,234") == "1234"

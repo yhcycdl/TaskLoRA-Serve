@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from collections import Counter
 from pathlib import Path
@@ -78,8 +79,16 @@ def split_records(
         raise ValueError("valid_ratio must be between 0 and 1")
     shuffled = list(records)
     random.Random(seed).shuffle(shuffled)
-    train_end = int(len(shuffled) * train_ratio)
-    valid_end = train_end + int(len(shuffled) * valid_ratio)
+    if len(shuffled) >= 3:
+        train_end = max(1, int(len(shuffled) * train_ratio))
+        valid_count = max(1, int(len(shuffled) * valid_ratio))
+        if train_end + valid_count >= len(shuffled):
+            train_end = len(shuffled) - 2
+            valid_count = 1
+        valid_end = train_end + valid_count
+    else:
+        train_end = len(shuffled)
+        valid_end = len(shuffled)
     return shuffled[:train_end], shuffled[train_end:valid_end], shuffled[valid_end:]
 
 
@@ -87,6 +96,35 @@ def take_limit(records: list[dict[str, Any]], limit: int | None) -> list[dict[st
     if limit is None:
         return records
     return records[: max(0, limit)]
+
+
+def load_local_records(path: str | Path) -> list[dict[str, Any]]:
+    local_path = Path(path)
+    if not local_path.exists():
+        raise FileNotFoundError(f"Local dataset file does not exist: {local_path}")
+
+    if local_path.suffix == ".jsonl":
+        records: list[dict[str, Any]] = []
+        with local_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    records.append(json.loads(line))
+        return records
+
+    if local_path.suffix == ".json":
+        with local_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            for key in ("train", "data", "records"):
+                value = data.get(key)
+                if isinstance(value, list):
+                    return value
+        raise ValueError(f"Unsupported JSON dataset shape in {local_path}")
+
+    raise ValueError(f"Unsupported local dataset extension: {local_path.suffix}")
 
 
 def load_hf_dataset(dataset_id: str, config: str | None = None):
@@ -104,8 +142,11 @@ def load_hf_dataset(dataset_id: str, config: str | None = None):
 
 
 def build_code_dataset(args: argparse.Namespace) -> dict[str, int]:
-    dataset = load_hf_dataset(args.code_dataset)
-    raw_train = list(dataset["train"])
+    if args.code_local_file:
+        raw_train = load_local_records(args.code_local_file)
+    else:
+        dataset = load_hf_dataset(args.code_dataset)
+        raw_train = list(dataset["train"])
     raw_train = take_limit(raw_train, args.code_limit)
     records = [r for item in raw_train if (r := normalize_codealpaca(item))]
     train, valid, test = split_records(records, seed=args.seed)
@@ -120,9 +161,19 @@ def build_code_dataset(args: argparse.Namespace) -> dict[str, int]:
 
 
 def build_math_dataset(args: argparse.Namespace) -> dict[str, int]:
-    dataset = load_hf_dataset(args.math_dataset, args.math_config)
-    raw_train = take_limit(list(dataset["train"]), args.math_limit)
-    raw_test = take_limit(list(dataset["test"]), args.math_limit)
+    if args.math_local_train_file:
+        raw_train = load_local_records(args.math_local_train_file)
+        if args.math_local_test_file:
+            raw_test = load_local_records(args.math_local_test_file)
+        else:
+            _, _, raw_test = split_records(raw_train, seed=args.seed, train_ratio=0.9, valid_ratio=0.05)
+    else:
+        dataset = load_hf_dataset(args.math_dataset, args.math_config)
+        raw_train = list(dataset["train"])
+        raw_test = list(dataset["test"])
+
+    raw_train = take_limit(raw_train, args.math_limit)
+    raw_test = take_limit(raw_test, args.math_limit)
 
     train_records = [r for item in raw_train if (r := normalize_gsm8k(item, "train"))]
     test_records = [r for item in raw_test if (r := normalize_gsm8k(item, "test"))]
@@ -152,9 +203,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="data/processed")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--code-dataset", default="sahil2801/CodeAlpaca-20k")
+    parser.add_argument("--code-local-file", default=None)
     parser.add_argument("--code-limit", type=int, default=None)
     parser.add_argument("--math-dataset", default="openai/gsm8k")
     parser.add_argument("--math-config", default="main")
+    parser.add_argument("--math-local-train-file", default=None)
+    parser.add_argument("--math-local-test-file", default=None)
     parser.add_argument("--math-limit", type=int, default=None)
     return parser.parse_args()
 
@@ -171,4 +225,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

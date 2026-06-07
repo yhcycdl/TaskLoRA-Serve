@@ -23,6 +23,19 @@ def resolve_torch_dtype(torch_module: Any, dtype_name: str | None):
     return mapping.get(str(dtype_name).lower())
 
 
+def resolve_device_map(torch_module: Any, use_qlora: bool):
+    if not use_qlora:
+        return "auto"
+    if torch_module.cuda.is_available():
+        return {"": torch_module.cuda.current_device()}
+    if hasattr(torch_module, "xpu") and torch_module.xpu.is_available():
+        return {"": torch_module.xpu.current_device()}
+    raise RuntimeError(
+        "QLoRA 4-bit training requires an available GPU/XPU. "
+        "Check your PyTorch CUDA installation with `torch.cuda.is_available()`."
+    )
+
+
 def training_args_kwargs(training_args_cls: Any, config: dict[str, Any], output_dir: str) -> dict[str, Any]:
     signature = inspect.signature(training_args_cls.__init__)
     params = signature.parameters
@@ -115,7 +128,7 @@ def main() -> None:
     model = AutoModelForCausalLM.from_pretrained(
         config["base_model"],
         quantization_config=quantization_config,
-        device_map="auto",
+        device_map=resolve_device_map(torch, use_qlora),
         trust_remote_code=True,
     )
     model.config.use_cache = False
@@ -193,4 +206,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

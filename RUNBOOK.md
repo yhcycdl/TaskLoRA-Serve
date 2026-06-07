@@ -136,7 +136,12 @@ python -m training.build_dataset --task all --output-dir data/processed
 
 ## 4. 训练
 
-训练建议使用 Python 3.10/3.11 + CUDA 对应版本 PyTorch。
+训练建议使用 Python 3.10/3.11 + CUDA 对应版本 PyTorch。建议先单独安装 PyTorch，再安装项目依赖：
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
+```
 
 先跑 smoke：
 

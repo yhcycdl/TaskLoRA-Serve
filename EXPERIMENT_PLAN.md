@@ -36,8 +36,11 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 
 pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 pip install -r requirements.txt
 ```
+
+The dependency versions are pinned for the CUDA 12.1 training stack. Do not run a loose `pip install -U transformers torch vllm`, because newer packages may require newer NVIDIA drivers.
 
 如果你只想先跑本地 mock 演示，不需要装完整训练依赖：
 
@@ -198,11 +201,24 @@ benchmark/results/mock_c2_summary.json
 
 ### 3.1 小样本数据 smoke
 
+如果服务器可以访问 Hugging Face：
+
 ```bash
 python -m training.build_dataset \
   --task all \
   --code-limit 100 \
   --math-limit 100 \
+  --output-dir data/processed_smoke
+```
+
+如果服务器不能访问 Hugging Face，先用仓库自带 tiny sample 跑离线 smoke：
+
+```bash
+python -m training.build_dataset \
+  --task all \
+  --code-local-file data/examples/codealpaca_sample.jsonl \
+  --math-local-train-file data/examples/gsm8k_train_sample.jsonl \
+  --math-local-test-file data/examples/gsm8k_test_sample.jsonl \
   --output-dir data/processed_smoke
 ```
 
@@ -225,10 +241,30 @@ math_test.jsonl
 
 ### 3.2 完整数据构建
 
+如果服务器能访问 Hugging Face：
+
 ```bash
 python -m training.build_dataset \
   --task all \
   --output-dir data/processed
+```
+
+如果服务器不能访问 Hugging Face，在本地或其他能访问网络的机器下载/导出 CodeAlpaca 和 GSM8K 为 JSONL 后传到服务器，然后运行：
+
+```bash
+python -m training.build_dataset \
+  --task all \
+  --code-local-file /path/to/codealpaca_train.jsonl \
+  --math-local-train-file /path/to/gsm8k_train.jsonl \
+  --math-local-test-file /path/to/gsm8k_test.jsonl \
+  --output-dir data/processed
+```
+
+本地文件字段要求：
+
+```text
+CodeAlpaca JSONL: instruction, input, output
+GSM8K JSONL: question, answer
 ```
 
 产物：
@@ -734,4 +770,3 @@ README 有真实 benchmark 表
 ```
 
 这 15 步做完，TaskLoRA-Serve V1 就是完整项目。
-
