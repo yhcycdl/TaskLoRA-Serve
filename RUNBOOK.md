@@ -146,7 +146,7 @@ pip install -r requirements.txt
 先跑 smoke：
 
 ```bash
-python -m training.train_qlora \
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora \
   --config configs/code_lora.yaml \
   --max-train-samples 10 \
   --max-eval-samples 5 \
@@ -156,9 +156,11 @@ python -m training.train_qlora \
 完整训练：
 
 ```bash
-python -m training.train_qlora --config configs/code_lora.yaml
-python -m training.train_qlora --config configs/math_lora.yaml
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/code_lora.yaml
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/math_lora.yaml
 ```
+
+如果服务器有多张 GPU，不加 `CUDA_VISIBLE_DEVICES=0` 时 Trainer 可能自动启用 DataParallel，4-bit QLoRA 训练会失败。
 
 训练结束后检查：
 

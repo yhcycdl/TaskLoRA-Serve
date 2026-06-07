@@ -299,10 +299,18 @@ python -c "import torch; print(torch.cuda.is_available())"
 True
 ```
 
+V1 的 QLoRA 训练按单卡设计。如果服务器有多张 GPU，训练命令前面要加：
+
+```bash
+CUDA_VISIBLE_DEVICES=0
+```
+
+否则 Transformers 可能自动启用 `DataParallel`，导致 4-bit QLoRA 模型训练报错。
+
 ### 4.1 code-lora 训练 smoke
 
 ```bash
-python -m training.train_qlora \
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora \
   --config configs/code_lora.yaml \
   --max-train-samples 10 \
   --max-eval-samples 5 \
@@ -326,7 +334,7 @@ train_log.json
 ### 4.2 math-lora 训练 smoke
 
 ```bash
-python -m training.train_qlora \
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora \
   --config configs/math_lora.yaml \
   --max-train-samples 10 \
   --max-eval-samples 5 \
@@ -342,14 +350,14 @@ ls outputs/math-lora
 ### 4.3 完整训练 code-lora
 
 ```bash
-python -m training.train_qlora \
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora \
   --config configs/code_lora.yaml
 ```
 
 ### 4.4 完整训练 math-lora
 
 ```bash
-python -m training.train_qlora \
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora \
   --config configs/math_lora.yaml
 ```
 

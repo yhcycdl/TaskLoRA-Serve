@@ -89,15 +89,15 @@ Outputs:
 Smoke training on a tiny sample:
 
 ```bash
-python -m training.train_qlora --config configs/code_lora.yaml --max-train-samples 10 --max-eval-samples 5 --max-steps 1
-python -m training.train_qlora --config configs/math_lora.yaml --max-train-samples 10 --max-eval-samples 5 --max-steps 1
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/code_lora.yaml --max-train-samples 10 --max-eval-samples 5 --max-steps 1
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/math_lora.yaml --max-train-samples 10 --max-eval-samples 5 --max-steps 1
 ```
 
 Full V1 training:
 
 ```bash
-python -m training.train_qlora --config configs/code_lora.yaml
-python -m training.train_qlora --config configs/math_lora.yaml
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/code_lora.yaml
+CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora --config configs/math_lora.yaml
 ```
 
 Expected adapter directories:

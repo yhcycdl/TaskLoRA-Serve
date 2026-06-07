@@ -36,6 +36,19 @@ def resolve_device_map(torch_module: Any, use_qlora: bool):
     )
 
 
+def validate_single_gpu_qlora(torch_module: Any, use_qlora: bool) -> None:
+    if not use_qlora or not torch_module.cuda.is_available():
+        return
+    visible_gpu_count = torch_module.cuda.device_count()
+    if visible_gpu_count > 1:
+        raise RuntimeError(
+            "TaskLoRA-Serve V1 uses single-GPU QLoRA training. "
+            f"Your process can see {visible_gpu_count} GPUs, so Transformers may wrap the "
+            "4-bit model with DataParallel and fail. Re-run with one visible GPU, for example: "
+            "`CUDA_VISIBLE_DEVICES=0 python -m training.train_qlora ...`"
+        )
+
+
 def training_args_kwargs(training_args_cls: Any, config: dict[str, Any], output_dir: str) -> dict[str, Any]:
     signature = inspect.signature(training_args_cls.__init__)
     params = signature.parameters
@@ -117,6 +130,7 @@ def main() -> None:
     qlora_cfg = config.get("qlora", {})
     quantization_config = None
     use_qlora = bool(qlora_cfg.get("enabled", True)) and not args.no_qlora
+    validate_single_gpu_qlora(torch, use_qlora)
     if use_qlora:
         compute_dtype = resolve_torch_dtype(torch, qlora_cfg.get("bnb_4bit_compute_dtype", "bfloat16"))
         quantization_config = BitsAndBytesConfig(
