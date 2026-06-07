@@ -160,9 +160,7 @@ def main() -> None:
 
     def tokenize_batch(batch: dict[str, Any]) -> dict[str, Any]:
         texts = [format_chat_messages(messages, tokenizer) for messages in batch["messages"]]
-        tokenized = tokenizer(texts, truncation=True, max_length=max_seq_length, padding=False)
-        tokenized["labels"] = [ids.copy() for ids in tokenized["input_ids"]]
-        return tokenized
+        return tokenizer(texts, truncation=True, max_length=max_seq_length, padding=False)
 
     tokenized = dataset.map(
         tokenize_batch,
