@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+data/raw/
+data/processed/
+data/processed_smoke/
+outputs/
+benchmark/results/
+report/results/
+*.log
+*:Zone.Identifier

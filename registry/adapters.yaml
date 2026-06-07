@@ -1,0 +1,27 @@
+base_models:
+  qwen25_15b_instruct:
+    model_id: Qwen/Qwen2.5-1.5B-Instruct
+    serving_name: base
+    max_context: 2048
+    dtype: bfloat16
+
+adapters:
+  code-lora:
+    name: code-lora
+    serving_name: code-lora
+    base_model: qwen25_15b_instruct
+    task: code
+    path: outputs/code-lora
+    dataset: sahil2801/CodeAlpaca-20k
+    status: pending
+    eval_score: null
+  math-lora:
+    name: math-lora
+    serving_name: math-lora
+    base_model: qwen25_15b_instruct
+    task: math
+    path: outputs/math-lora
+    dataset: openai/gsm8k
+    status: pending
+    eval_score: null
+

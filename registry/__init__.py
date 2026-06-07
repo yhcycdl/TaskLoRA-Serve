@@ -1,0 +1,2 @@
+"""Adapter registry package."""
+

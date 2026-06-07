@@ -1,0 +1,28 @@
+base_model: Qwen/Qwen2.5-1.5B-Instruct
+max_new_tokens: 512
+temperature: 0.0
+seed: 42
+
+math:
+  dataset: openai/gsm8k
+  dataset_config: main
+  split: test
+  limit: 200
+  output: report/results/gsm8k_eval.jsonl
+
+code:
+  dataset: google-research-datasets/mbpp
+  dataset_config: sanitized
+  split: test
+  limit: 50
+  timeout_seconds: 8
+  output: report/results/mbpp_eval.jsonl
+
+models:
+  base:
+    adapter_path: null
+  code-lora:
+    adapter_path: outputs/code-lora
+  math-lora:
+    adapter_path: outputs/math-lora
+

@@ -1,0 +1,33 @@
+url: http://localhost:8000/v1/task/chat
+duration_seconds: 60
+concurrency: 4
+request_timeout_seconds: 120
+max_tokens: 256
+temperature: 0.2
+seed: 42
+
+workloads:
+  - name: code_generation
+    task: code
+    ratio: 0.50
+    prompts:
+      - "Write a Python function that returns the Fibonacci number at index n."
+      - "Implement binary search in Python and explain the time complexity."
+      - "Write a function that checks whether a string has balanced parentheses."
+      - "Implement a simple LRU cache class in Python."
+  - name: math_reasoning
+    task: math
+    ratio: 0.40
+    prompts:
+      - "A store sells pencils in packs of 12. If a teacher buys 7 packs, how many pencils did they buy?"
+      - "A train travels 180 miles in 3 hours. What is its average speed in miles per hour?"
+      - "Mia has 24 stickers and gives 1/3 of them to her friend. How many stickers does she have left?"
+      - "A rectangle has length 14 and width 6. What is its area?"
+  - name: general_chat
+    task: general
+    ratio: 0.10
+    prompts:
+      - "Explain what LoRA fine-tuning is in two sentences."
+      - "What is the difference between latency and throughput?"
+      - "Summarize why Prometheus metrics are useful for an API service."
+

@@ -1,0 +1,38 @@
+services:
+  mock-vllm:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: >
+      sh -c "pip install -r requirements-gateway.txt &&
+             python -m serving.mock_vllm --host 0.0.0.0 --port 8001"
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  gateway:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: >
+      sh -c "pip install -r requirements-gateway.txt &&
+             uvicorn serving.gateway:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TASKLORA_VLLM_BASE_URL=http://mock-vllm:8001
+    depends_on:
+      - mock-vllm
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - gateway

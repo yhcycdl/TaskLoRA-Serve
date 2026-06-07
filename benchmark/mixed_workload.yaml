@@ -1,0 +1,11 @@
+workloads:
+  - name: code_generation
+    task: code
+    ratio: 0.50
+  - name: math_reasoning
+    task: math
+    ratio: 0.40
+  - name: general_chat
+    task: general
+    ratio: 0.10
+

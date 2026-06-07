@@ -1,0 +1,11 @@
+base_model: Qwen/Qwen2.5-1.5B-Instruct
+base_model_alias: base
+base_model_serving_name: Qwen/Qwen2.5-1.5B-Instruct
+registry_path: registry/adapters.yaml
+vllm_base_url: http://localhost:8001
+request_timeout_seconds: 120
+
+task_routes:
+  code: code-lora
+  math: math-lora
+  general: base
